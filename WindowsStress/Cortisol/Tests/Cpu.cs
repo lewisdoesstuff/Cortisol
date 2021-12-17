@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using System.Numerics;
 
-namespace Cortisol;
+namespace Cortisol.Tests;
 
-public static class Tests
+public static class Cpu
 {
     /// <summary>
     /// Pin the CPU at a requested usage using Stopwatches.

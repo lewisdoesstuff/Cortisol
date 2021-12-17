@@ -7,12 +7,14 @@ using CommandLine;
 /// </summary>
 public class Options
     {
-        public Options(int usage, int threads, int time, bool temps)
+        public Options(int usage, int threads, int time, bool temps, int memory)
         {
             Usage = usage;
             Threads = threads;
             Time = time;
             Temps = temps;
+            Memory = memory;
+
         }
 
         public Options(){} // empty constructor for when no args passed
@@ -33,6 +35,9 @@ public class Options
 
         [Option('t', "temp", Required = false, HelpText = "Display CPU temperature while test is running.")]
         public bool Temps { get; set; }
+        
+        [Option('m',"memory", Required = false, HelpText = "Consume the given (MB) amount of RAM")]
+        public int Memory { get; set; }
         public bool Prime { get; set; }
         
 
@@ -86,6 +91,10 @@ public class Options
                 }
             }
 
+            if (options.Memory != null && options.Memory > 0)
+            {
+                output.Memory = options.Memory;
+            }
             if (options.Temps) output.Temps = true;
             return output;
         }

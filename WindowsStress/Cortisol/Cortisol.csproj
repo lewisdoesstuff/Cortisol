@@ -12,6 +12,7 @@
     <ItemGroup>
       <PackageReference Include="CommandLineParser" Version="2.9.0-preview1" />
       <PackageReference Include="FancyPrint" Version="0.1.2" />
+      <PackageReference Include="LibreHardwareMonitorLib" Version="0.8.10-pre67" />
       <PackageReference Include="Mono.Posix" Version="7.1.0-final.1.21458.1" />
       <PackageReference Include="OpenHardwareMonitor" Version="0.9.6" />
       <PackageReference Include="System.Management" Version="6.0.0" />

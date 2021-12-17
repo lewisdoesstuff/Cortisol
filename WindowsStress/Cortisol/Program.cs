@@ -46,17 +46,25 @@ namespace Cortisol
             // Loop for amount of threads, creating a new task of the chosen stress type with the cancellation token, then add it to the list..
             try
             {
+
+                if (options.Memory > 0)
+                {
+                    var task = new Task(() => Tests.Memory.RamHog(options.Memory));
+                    task.Start();
+                    tasks.Add(task);
+                }
+                
                 for (var i = 0; i < options.Threads * 2; i++)
                 {
                     Task task;
                     if (options.Prime)
                     {
-                        task = new Task(Tests.PrimeKill, token);
+                        task = new Task(Tests.Cpu.PrimeKill, token);
                         task.Start();
                     }
                     else
                     {
-                        task = new Task(() => Tests.CpuKill(options.Usage, options.Time), token);
+                        task = new Task(() => Tests.Cpu.CpuKill(options.Usage, options.Time), token);
                         task.Start();
 
                     }
