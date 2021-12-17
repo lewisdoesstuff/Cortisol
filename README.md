@@ -1,4 +1,5 @@
 # Stress For Windows
+![Build](https://github.com/lewisdoesstuff/Stress-for-Windows/actions/workflows/dotnet.yml/badge.svg)  
 
 A .NET cross-platform CPU stress testing program for the command line.
 
