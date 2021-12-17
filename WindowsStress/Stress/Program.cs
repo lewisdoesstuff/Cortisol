@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Numerics;
-using System.Threading;
-using System.Threading.Tasks;
 using CommandLine;
 
 namespace Stress
@@ -12,7 +7,10 @@ namespace Stress
     /**
      * The aim of this program is to load the cpu to a specific load. It is similar in that regard to the Linux tool Stress
      */
-
+    
+    ///<summary>
+    /// CommandLineParser's Options class. Handles passed arguments UNIX style.
+    /// </summary>
     public class Options
     {
         public Options(int usage, int threads, int time)
@@ -20,9 +18,10 @@ namespace Stress
             this.Usage = usage;
             this.Threads = threads;
             this.Time = time;
-
         }
-        public Options(){}
+
+        public Options(){} // empty constructor for when no args passed
+        
         [Option('u', "usage", Required = false, 
             HelpText = "Set the desired CPU usage% for the test. Does not apply to the Mersenne Prime test.")]
 
@@ -37,198 +36,244 @@ namespace Stress
             HelpText = "Set the desired time for the test to run. 0 will run until cancelled.")]
         public int Time { get; set; }
 
-        [Option('p', "prime", Required = false,
-            HelpText = "Run the Mersenne Prime CPU stress test. Generates more heat.")]
         public bool Prime { get; set; }
-    }
+        
 
-    class StressForWindows
-    {
-        /**
-         * The parameters passed should be CPU Usage, Core count and finally duration
-         */
-        static void Main(string[] args)
+        public static Options GetOptions(Options? options)
         {
-            int cpuUsage = 100;
-            int targetThreadCount = 0;
-            int duration = 0;
-            bool prime = false;
+            var output = new Options();
 
-            var parser = new Parser(with => with.EnableDashDash = true);
-            var result = parser.ParseArguments<Options>(args);
-            result.WithParsed(o =>
+            if (options != null && options.Usage != 0)
             {
-                Console.WriteLine(o.Threads);
-                Console.WriteLine(o.Time);
-                Console.WriteLine(o.Usage);
-                prime = o.Prime;
-                if (o.Usage != 100 && o.Usage != 0)
-                    cpuUsage = o.Usage;
-                else if (o.Usage == 0 && !o.Prime)
-                {
-                    Console.WriteLine("Please enter CPU usage amount (1-100)");
-                    var res = Console.ReadLine();
-                    if (int.TryParse(res, out _))
-                    {
-                        cpuUsage = Convert.ToInt32(res);
-                    }
-                }
-
-                if (o.Threads != Environment.ProcessorCount && o.Threads != 0)
-                    targetThreadCount = o.Threads;
-                else if (o.Threads == 0)
-                {
-                    Console.WriteLine($"Please enter Thread Count (1-{Environment.ProcessorCount}");
-                    var res = Console.ReadLine();
-                    if (int.TryParse(res, out _) && Convert.ToInt32(res) <= Environment.ProcessorCount)
-                    {
-                        targetThreadCount = Convert.ToInt32(res);
-                    }
-                }
-
-                if (o.Time > 0)
-                    duration = o.Time;
-                else if (o.Time == 0)
-                {
-                    Console.WriteLine($"Please enter Test Duration (s). Enter 0 for unlimited time.");
-                    var res = Console.ReadLine();
-                    if (int.TryParse(res, out _))
-                    {
-                        duration = Convert.ToInt32(res) * 1000;
-                    }
-                }
-
-                Console.WriteLine(o.Usage);
-
-            })
-                .WithNotParsed(o => o.ToList().ForEach(l => Console.WriteLine(l)));
-            /*
-             * The code here is a modifed (to be parameterizable) version of the code at: 
-             * http://stackoverflow.com/questions/2514544/simulate-steady-cpu-load-and-spikes
-             * another interesting article covering this topic is:
-             * http://stackoverflow.com/questions/5577098/how-to-run-cpu-at-a-given-load-cpu-utilization
-             */
-
-
-            Console.WriteLine(
-                $"Parameters: CPU: {cpuUsage},Thread Count: {targetThreadCount}, Duration: {duration / 1000}");
-            List<Thread> threads = new List<Thread>();
-            List<Task> tasks = new List<Task>();
-            //Ensure the current process takes presendence thus (hopefully) holidng the utilisation steady
-            Process Proc = Process.GetCurrentProcess();
-            Proc.PriorityClass = ProcessPriorityClass.RealTime;
-            CancellationTokenSource tokenSource = new CancellationTokenSource();
-            CancellationToken token = tokenSource.Token;
-
-            long AffinityMask = (long)Proc.ProcessorAffinity;
-            for (int i = 0; i < targetThreadCount; i++)
+                output.Usage = options.Usage;
+                output.Prime = output.Usage >= 100;
+            }
+            // Otherwise, get usage from stdin.
+            else
             {
-                Thread t;
-                Task task;
-                if (prime)
+                Console.WriteLine("Please enter CPU usage amount (1-100)");
+                var res = Console.ReadLine();
+                if (int.TryParse(res, out _))
                 {
-                    // t = new Thread(PrimeKill);
-                    //  t.Start();
-                    task = new Task(() => PrimeKill(token), token);
-                    task.Start();
+                    output.Usage = Convert.ToInt32(res);
+                    // If we don't want 100% usage, use the Stopwatch based test.
+                    output.Prime = output.Usage >= 100;
                 }
-                else
-                {
-                    // t = new Thread(CpuKill);
-                    // t.Start(cpuUsage, duration);
-                    task = new Task(() => CpuKill(cpuUsage, duration, token), token);
-                    task.Start();
-
-                }
-
-                tasks.Add(task);
             }
 
-            Thread.Sleep(duration);
-            foreach (var t in tasks)
+            // If threads is changed from default, and within limits (cpu thread count), set to passed value.
+            if (options != null && options.Threads != Environment.ProcessorCount && options.Threads != 0)
+                output.Threads = options.Threads;
+            // Otherwise, get threads from stdin.
+            else
             {
-                tokenSource.Cancel();
+                Console.WriteLine($"Please enter Thread Count (1-{Environment.ProcessorCount})");
+                var res = Console.ReadLine();
+                if (int.TryParse(res, out _) && Convert.ToInt32(res) <= Environment.ProcessorCount)
+                {
+                    output.Threads = Convert.ToInt32(res);
+                }
             }
+
+            // If time is changed from default, * 1000 (s => ms), set to passed value.
+            if (options != null && options.Time > 0)
+                output.Time = options.Time * 1000;
+            // Otherwise, get from stdin (and * 1000)
+            else
+            {
+                Console.WriteLine($"Please enter Test Duration (s). Enter 0 for unlimited time.");
+                var res = Console.ReadLine();
+                if (int.TryParse(res, out _))
+                {
+                    output.Time = Convert.ToInt32(res) * 1000;
+                }
+            }
+
+            return output;
         }
 
-        public static void CpuKill(int cpuUsage, int duration, CancellationToken token)
+        public static void HandleParseError(IEnumerable<Error> errors)
         {
+            Console.WriteLine("CommandLineParser reported errors with the passed arguments! \nErrors:");
+            var errList = errors.ToList();
+            foreach (var error in errList)
+            {
+                Console.WriteLine(error);
+            }
+        }
+        
+    }
+
+    
+    public static class StressForWindows
+    {
+
+        public static void Main(string[] args)
+        {
+            var parserResult = Parser.Default.ParseArguments<Options>(args)
+                .WithNotParsed(o => Options.HandleParseError(o));
+
+            var parsed = (parserResult as Parsed<Options>)?.Value;
+            var options = Options.GetOptions(parsed);
+
+            Run(options);
+        }
+        
+        /// <summary>
+        /// Main program body, handles argument parsing and running tests.
+        /// </summary>
+        /// <param name="options">Passed launch options.</param>
+        public static bool Run(Options options)
+        {
+            // The code here is a modified (to be parameterizable) version of the code at: 
+            // http://stackoverflow.com/questions/2514544/simulate-steady-cpu-load-and-spikes
+            // another interesting article covering this topic is:
+            // http://stackoverflow.com/questions/5577098/how-to-run-cpu-at-a-given-load-cpu-utilization
+             
+            // Print options to screen.
+            Console.WriteLine($"Parameters: CPU: {options.Usage},Thread Count: {options.Threads}, Duration: {options.Time / 1000}");
+            
+            // Create new list of tasks, one/thread.
+            var tasks = new List<Task>();
+            
+            // Proc.PriorityClass = ProcessPriorityClass.RealTime; -- this was a terrible idea.
+            
+            // Create CancellationToken and Source to kill the tasks. thread.Abort() was depreciated. (and apparently a terrible idea)
+            var tokenSource = new CancellationTokenSource();
+            var token = tokenSource.Token;
+            
+            
+            // Loop for amount of threads, creating a new task of the chosen stress type with the cancellation token, then add it to the list..
+            try
+            {
+                for (var i = 0; i < options.Threads * 2; i++)
+                {
+                    Task task;
+                    if (options.Prime)
+                    {
+                        task = new Task(PrimeKill, token);
+                        task.Start();
+                    }
+                    else
+                    {
+                        task = new Task(() => CpuKill(options.Usage, options.Time), token);
+                        task.Start();
+
+                    }
+
+                    tasks.Add(task);
+                }
+
+                // After completion, cancel the tasks.
+                Thread.Sleep(options.Time);
+                tasks.ForEach(_ => tokenSource.Cancel());
+                return true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Exception! Something went wrong while running the test. Exception: \n {e}");
+                return false;
+            }
+            
+        }
+
+        /// <summary>
+        /// Pin the CPU at a requested usage using Stopwatches.
+        /// </summary>
+        /// <param name="cpuUsage">Requested CPU usage</param>
+        /// <param name="duration">Duration of test</param>
+        private static void CpuKill(int cpuUsage, int duration)
+        {
+            // I didn't write this, so I'm not 100% on it.
+            // While running, create a new watch, sleep x seconds to lower the CPU usage amount, reset the watch. 
+            // Doing this fast enough and in parallel causes very high CPU usage.
             Parallel.For(0, 1, i =>
             {
-                Stopwatch time = new Stopwatch();
-                Stopwatch watch = new Stopwatch();
+                var time = new Stopwatch();
+                var watch = new Stopwatch();
                 watch.Start();
                 time.Start();
                 while (time.ElapsedMilliseconds < duration)
                 {
-                    if (watch.ElapsedMilliseconds > (int)cpuUsage)
-                    {
-                        token.ThrowIfCancellationRequested();
-                        Thread.Sleep(100 - (int)cpuUsage);
-                        watch.Reset();
-                        watch.Start();
-                    }
+                    if (watch.ElapsedMilliseconds <= cpuUsage) continue;
+                    Thread.Sleep(100 - cpuUsage);
+                    watch.Reset();
+                    watch.Start();
                 }
             });
         }
 
-        public static void PrimeKill(CancellationToken token)
+        /// <summary>
+        /// Stress the CPU by finding Mersenne Primes.
+        /// </summary>
+        private static void PrimeKill()
         {
+            // While running, check if the given exponent of 2 is a Mersenne Prime, increasing the exp on each loop.
             Parallel.For(0, 1, i =>
             {
-                long power = 2000000;
-                while (true)
-                {
-                    token.ThrowIfCancellationRequested();
-                    power += 1;
-                    Console.WriteLine($"n={power}");
-                    if (IsMersenne(power -1))
-                    {
-                        Console.WriteLine($"{power} is prime!");
+                var pow = 2;
+                while (true) {
+                    if (IsPrime(pow)) {
+                        BigInteger p = BigInteger.Pow(2, pow) - 1;
+                        if (IsPrime(p)) {
+                            Console.WriteLine($"{p} is prime!");
+                        }
                     }
+                    pow++;
                 }
             });
         }
 
-        public static bool IsMersenne(BigInteger num)
-        {
-            if (num == 2) return true;
-
-            long sqrt = (long)num.Sqrt();
-            for (long i = 3; i < sqrt; i += 2)
-                if (num % i == 2)
-                    return false;
+        /// <summary>
+        /// Check if a given number is a Mersenne Prime.
+        /// https://rosettacode.org/wiki/Mersenne_primes#C.23
+        /// </summary>
+        /// <param name="num">Number to test.</param>
+        /// <returns></returns>
+        public static bool IsPrime(BigInteger num) {
+            // Compare against short list.
+            if (num < 2) return false;
+            if (num % 2 == 0) return num == 2;
+            if (num % 3 == 0) return num == 3;
+            if (num % 5 == 0) return num == 5;
+            if (num % 7 == 0) return num == 7;
+            if (num % 11 == 0) return num == 11;
+            if (num % 13 == 0) return num == 13;
+            if (num % 17 == 0) return num == 17;
+            if (num % 19 == 0) return num == 19;
+ 
+            // We use BigIntegers as the numbers get very big very fast.
+            BigInteger limit = num.Sqrt();
+            BigInteger test = 23;
+            
+            while (test < limit) {
+                if (num % test == 0) return false;
+                test += 2;
+                if (num % test == 0) return false;
+                test += 4;
+            }
+ 
             return true;
-
         }
 
     }
 
     public static class Extension
-    {
-        public static BigInteger Sqrt(this BigInteger n)
-        {
-            if (n == 0) return 0;
-            if (n <= 0) throw new ArithmeticException("NaN");
-            int bitLength = Convert.ToInt32(Math.Ceiling(BigInteger.Log(n, 2)));
-            BigInteger root = BigInteger.One << (bitLength / 2);
-
-            while (!IsSqrt(n, root))
-            {
-                root += n / root;
-                root /= 2;
+    { 
+        /// <summary>
+        /// Numerics.BigInteger Square Root extension method.
+        /// </summary>
+        /// <param name="x">Input BigInteger</param>
+        /// <returns>Square Root of x</returns>
+        /// <exception cref="ArgumentException">Negative numbers are not permitted.</exception>
+        public static BigInteger Sqrt (this BigInteger x) {
+            if (x < 0) throw new ArgumentException("Negative argument.");
+            if (x < 2) return x;
+            BigInteger y = x / 2;
+            while (y > x / y) {
+                y = ((x / y) + y) / 2;
             }
-
-            return root;
-
-        }
-
-        private static Boolean IsSqrt(BigInteger n, BigInteger root)
-        {
-            BigInteger lowerBound = root * root;
-            BigInteger upperBound = (root + 1) * (root + 1);
-
-            return (n >= lowerBound && n < upperBound);
+            return y;
         }
     }
 }
