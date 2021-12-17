@@ -1,11 +1,11 @@
-
+using System.Collections;
 using CommandLine;
 
 ///<summary>
 /// CommandLineParser's Options class. Handles passed arguments UNIX style.
 /// </summary>
-public class Options
-    {
+public class Options : IEquatable<Options>
+{
         public Options(int usage, int threads, int time, bool temps, int memory)
         {
             Usage = usage;
@@ -40,61 +40,25 @@ public class Options
         public bool Prime { get; set; }
         
 
-        public static Options GetOptions(Options? options)
+        public static Options ParseSuccess(Options options)
         {
-            var output = new Options();
+            
+            var output = new Options
+            {
+                Memory = options.Memory,
+                Temps = options.Temps,
+                Threads = options.Threads,
+                Time = options.Time * 1000,
+                Usage = options.Usage
+            };
 
-            if (options != null && options.Usage != 0)
+            // if options are default (clp sets them all to 0/false), get options from user.
+            if (options.Equals(new Options()))
             {
-                output.Usage = options.Usage;
-                output.Prime = output.Usage >= 100;
-            }
-            // Otherwise, get usage from stdin.
-            else
-            {
-                Console.WriteLine("Please enter CPU usage amount (1-100)");
-                var res = Console.ReadLine();
-                if (int.TryParse(res, out _))
-                {
-                    output.Usage = Convert.ToInt32(res);
-                    // If we don't want 100% usage, use the Stopwatch based test.
-                    output.Prime = output.Usage >= 100;
-                }
+                output = GetOptions();
             }
 
-            // If threads is changed from default, and within limits (cpu thread count), set to passed value.
-            if (options != null && options.Threads != Environment.ProcessorCount && options.Threads != 0)
-                output.Threads = options.Threads;
-            // Otherwise, get threads from stdin.
-            else
-            {
-                Console.WriteLine($"Please enter Thread Count (1-{Environment.ProcessorCount})");
-                var res = Console.ReadLine();
-                if (int.TryParse(res, out _) && Convert.ToInt32(res) <= Environment.ProcessorCount)
-                {
-                    output.Threads = Convert.ToInt32(res);
-                }
-            }
 
-            // If time is changed from default, * 1000 (s => ms), set to passed value.
-            if (options != null && options.Time > 0)
-                output.Time = options.Time * 1000;
-            // Otherwise, get from stdin (and * 1000)
-            else
-            {
-                Console.WriteLine($"Please enter Test Duration (s). Enter 0 for unlimited time.");
-                var res = Console.ReadLine();
-                if (int.TryParse(res, out _))
-                {
-                    output.Time = Convert.ToInt32(res) * 1000;
-                }
-            }
-
-            if (options.Memory != null && options.Memory > 0)
-            {
-                output.Memory = options.Memory;
-            }
-            if (options.Temps) output.Temps = true;
             return output;
         }
 
@@ -107,5 +71,103 @@ public class Options
                 Console.WriteLine(error);
             }
         }
-        
-    }
+
+        public static Options GetOptions()
+        {
+            var options = new Options();
+            bool retry;
+            do
+            {
+                Console.WriteLine("Enter CPU usage amount (1-100)");
+                {
+                    retry = false;
+                    var input = Console.ReadLine();
+                    var usage = Convert.ToInt32(input);
+                    if (usage > 0 &&
+                        usage <= 100)
+                    {
+                        options.Usage = usage;
+                    }
+                    else
+                    {
+                        retry = true;
+                    }
+                }
+            } while (retry);
+
+            do
+            {
+                Console.WriteLine($"Enter thread count (1-{Environment.ProcessorCount})");
+                {
+                    retry = false;
+                    var input = Console.ReadLine();
+                    if (int.TryParse(input, out var threads) &&
+                        threads > 0 &&
+                        threads <= Environment.ProcessorCount)
+                    {
+                        options.Threads = threads;
+                    }
+                    else retry = true;
+                }
+            } while (retry);
+
+            do
+            {
+                //TODO: allow unlimited time
+                Console.WriteLine("Enter test duration (s)");
+                {
+                    retry = false;
+                    var input = Console.ReadLine();
+                    if (int.TryParse(input, out var time))
+                    {
+                        options.Threads = time * 1000;
+                    }
+                    else retry = true;
+                }
+            } while (retry);
+            
+            do
+            {
+                Console.WriteLine("Display temperatures? Y/N:");
+                {
+                    retry = false;
+                    var input = Console.ReadLine();
+                    if (!string.IsNullOrWhiteSpace(input) &&
+                        input.ToLower() == "y")
+                    {
+                        options.Temps = true;
+                    }
+                    else if (!string.IsNullOrWhiteSpace(input) &&
+                             input.ToLower() == "n")
+                    {
+
+                        options.Temps = false;
+                    }
+                    else retry = true;
+                }
+            } while (retry);
+            return options;
+
+
+        }
+
+        public bool Equals(Options? other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return Usage == other.Usage && Threads == other.Threads && Time == other.Time && Memory == other.Memory; // this doesn't actually check all of the values, we ignore prime and temps for this.
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((Options) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Usage, Threads, Time, Temps, Memory, Prime);
+        }
+}

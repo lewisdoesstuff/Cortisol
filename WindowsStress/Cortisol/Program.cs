@@ -14,7 +14,7 @@ namespace Cortisol
                 .WithNotParsed(Options.HandleParseError);
 
             var parsed = (parserResult as Parsed<Options>)?.Value;
-            var options = Options.GetOptions(parsed);
+            var options = Options.ParseSuccess(parsed);
 
             Run(options);
         }
