@@ -1,11 +1,11 @@
-# Stress For Windows
+# Cortisol
 ![Build](https://github.com/lewisdoesstuff/Stress-for-Windows/actions/workflows/dotnet.yml/badge.svg)  
 
 A .NET cross-platform CPU stress testing program for the command line.
 
 ## Description
 
-Stress for Windows (stress) is a CPU stress testing tool inspired by the Linux tool `stress`. 
+Cortisol (StressforWindows) is a CPU stress testing tool inspired by the Linux tool `stress`. 
 The program has 2 stress tests, a prime number search similar to Prime95, and a usage % configurable resource consumption (using Stopwatch()) test.
 
 
