@@ -1,5 +1,6 @@
 # Cortisol
-![Build](https://github.com/lewisdoesstuff/Stress-for-Windows/actions/workflows/dotnet.yml/badge.svg)  
+![Build](https://github.com/lewisdoesstuff/Cortisol/actions/workflows/dotnet.yml/badge.svg)  
+![Build Windows](https://github.com/lewisdoesstuff/Cortisol/actions/workflows/dotnet-windows.yml/badge.svg)
 
 A .NET cross-platform CPU stress testing program for the command line.
 
