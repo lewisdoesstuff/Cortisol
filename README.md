@@ -1,14 +1,48 @@
-# Stress-for-Windows
-A tool for stressing Windows hosts in a similar fashion to the Linux tool Stress.
+# Stress For Windows
 
-This tool aims to stress a cpu at a fixed level on Windows based machines. It is useful for testing output such as power consumption on a Windows Machine. Its usage is:
+A .NET cross-platform CPU stress testing program for the command line.
 
-It takes 3 parameters:
+## Description
 
-1) cpu usage as a percentage
-2) the count of cores to perform the stress test on. The command all can be used instead.
-3) the duration in seconds for which this should run for.
+Stress for Windows (stress) is a CPU stress testing tool inspired by the Linux tool `stress`. 
+The program has 2 stress tests, a prime number search similar to Prime95, and a usage % configurable resource consumption (using Stopwatch()) test.
 
-i.e. WindowsStress.exe 50 all 20
 
-meaning stress to 50% usage for all cores for 20 seconds.
+## Getting Started
+
+### Dependencies
+
+* .NET 6.0 Runtime(SDK to build)
+
+### Build
+
+* Build using Visual Studio (or other .NET IDE)
+* Build using `dotnet build` 
+
+### Executing program
+
+* Run `Stress.exe` from the command line.
+
+#### Arguments
+
+```
+  -u, --usage      Set the desired CPU usage% for the test. Does not apply to the Mersenne Prime test.
+
+  -t, --threads    Set the desired amount of threads for the test to run on. 0 will run on all available threads.
+
+  -d, --time       Set the desired time for the test to run. 0 will run until cancelled.
+
+  --help           Display this help screen.
+
+  --version        Display version information.
+```
+
+
+## Version History
+
+* No versions published.
+
+## License
+
+This project is licensed under the Apache 2.0 License - see the LICENSE.md file for details
+
