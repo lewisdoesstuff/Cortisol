@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
+using FancyPrint;
 using Microsoft.Win32.SafeHandles;
 using LibreHardwareMonitor.Hardware;
 
@@ -35,6 +36,7 @@ namespace Cortisol
 
         private static float GetTemp()
         {
+
             UpdateVisitor updateVisitor = new UpdateVisitor();
             Computer computer = new Computer();
             computer.Open();
@@ -56,7 +58,12 @@ namespace Cortisol
 
         public static void CpuTemp(int time)
         {
-            Console.WriteLine("Called");
+            if (!OperatingSystem.IsWindows())
+            {
+                Print.WriteError("GetTemp", "Temperature monitoring is currently broken on non-Windows platforms.");
+                return;
+            }
+            //Console.WriteLine("Called");
             float[] cpu = new float[time / 1000];
             for (int i = 0; i <= time / 1000; i++)
             {
