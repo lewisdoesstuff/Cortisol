@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stress", "Stress\Stress.csproj", "{1EF8A26C-A5AA-4977-9775-11DFFB2BF0CF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cortisol", "Cortisol\Cortisol.csproj", "{1EF8A26C-A5AA-4977-9775-11DFFB2BF0CF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StressTests", "StressTests\StressTests.csproj", "{8523A53D-7013-4C2C-9F31-3C6551FC877C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CortisolTests", "CortisolTests\CortisolTests.csproj", "{8523A53D-7013-4C2C-9F31-3C6551FC877C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

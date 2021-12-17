@@ -1,6 +1,6 @@
 using NUnit.Framework;
 
-namespace Stress.Tests;
+namespace Cortisol.Tests;
 
 [TestFixture]
 public class Run_RunSuccess

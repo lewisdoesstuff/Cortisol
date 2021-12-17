@@ -2,7 +2,7 @@ using System;
 using NUnit.Framework;
 
 
-namespace Stress.Tests;
+namespace Cortisol.Tests;
 
 [TestFixture]
 public class Options_HandleOptions
