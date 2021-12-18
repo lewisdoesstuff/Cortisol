@@ -23,20 +23,25 @@ The program has 2 stress tests, a prime number search similar to Prime95, and a 
 
 ### Executing program
 
-* Run `Stress.exe` from the command line.
+* Run `Cortisol.exe` from the command line.
 
 #### Arguments
 
 ```
   -u, --usage      Set the desired CPU usage% for the test. Does not apply to the Mersenne Prime test.
 
-  -t, --threads    Set the desired amount of threads for the test to run on. 0 will run on all available threads.
+  -c, --threads    Set the desired amount of threads for the test to run on. 0 will run on all available threads.
 
   -d, --time       Set the desired time for the test to run. 0 will run until cancelled.
+
+  -t, --temp       Display CPU temperature while test is running.
+
+  -m, --memory     Consume the given (MB) amount of RAM
 
   --help           Display this help screen.
 
   --version        Display version information.
+
 ```
 
 
