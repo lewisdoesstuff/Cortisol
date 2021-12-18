@@ -75,11 +75,21 @@ namespace Cortisol
                 // After completion, cancel the tasks.
                 if (options.Temps)
                 {
-                    Console.Write("TEMPS!");
+                    //Console.Write("TEMPS!");
                     Monitoring.CpuTemp(options.Time);
                 }
-                Thread.Sleep(options.Time);
-                tasks.ForEach(_ => tokenSource.Cancel());
+
+                if (options.Time != 0)
+                {
+                    Thread.Sleep(options.Time);
+                    tokenSource.Cancel();
+                    return true; 
+                }
+                if (options.Time == 0) Console.WriteLine("Test will run until closed. Press 'q' / Ctrl + C to exit.");
+                while (Console.ReadKey().Key != ConsoleKey.Q )
+                {
+                }
+                tokenSource.Cancel();
                 return true;
             }
             catch (Exception e)
