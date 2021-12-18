@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Numerics;
 
-namespace Cortisol.Tests;
+namespace Cortisol.Stress;
 
 public static class Cpu
 {
@@ -37,7 +37,7 @@ public static class Cpu
     public static void PrimeKill()
     {
         // While running, check if the given exponent of 2 is a Mersenne Prime, increasing the exp on each loop.
-        Parallel.For(0, 1, i =>
+        Parallel.For(0, 1, _ =>
         {
             var pow = 2;
             while (true)

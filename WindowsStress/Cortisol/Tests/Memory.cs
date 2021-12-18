@@ -1,9 +1,4 @@
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-using System.Xml;
-
-
-namespace Cortisol.Tests;
+namespace Cortisol.Stress;
 
 public static class Memory
 {

@@ -40,5 +40,28 @@ public class Stress_Math
         BigInteger bigInteger = value;
         Assert.AreEqual((BigInteger)Convert.ToInt32(System.Math.Round(System.Math.Sqrt(value), MidpointRounding.AwayFromZero)),  bigInteger.Sqrt());
     }
+
+    [Test]
+    public void BigIntSqrtNegative()
+    {
+        BigInteger bigInteger = -1;
+        try
+        {
+            bigInteger = bigInteger.Sqrt();
+        }
+        catch (ArgumentException)
+        {
+            Assert.Pass();
+        }
+        Assert.Fail();
+    }
+
+    [TestCase(0)]
+    [TestCase(1)]
+    public void BigIntSqrtLess2(int value)
+    {
+        BigInteger bigInteger = value;
+        Assert.AreEqual(bigInteger, bigInteger.Sqrt());
+    }
     
 }
