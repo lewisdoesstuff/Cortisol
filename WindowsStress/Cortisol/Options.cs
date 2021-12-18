@@ -64,12 +64,15 @@ public class Options : IEquatable<Options>
 
         public static void HandleParseError(IEnumerable<Error> errors)
         {
+            if (errors.IsHelp() || errors.IsVersion()) Environment.Exit(0);
+            
             Console.WriteLine("CommandLineParser reported errors with the passed arguments! \nErrors:");
             var errList = errors.ToList();
             foreach (var error in errList)
             {
                 Console.WriteLine(error);
             }
+            Environment.Exit(2);
         }
 
         public static Options GetOptions()
